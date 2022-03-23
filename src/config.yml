@@ -1,0 +1,55 @@
+#range
+#Дистанция видимости индикаторов
+range: 16.0
+
+#bossrange
+#Дистанция видимости босбара
+bossrange: 6.0
+
+#raycaststep
+#Шаг raycast меньше - точнее , больше - быстрее
+raycaststep: 0.2
+
+#boxsizemodificator
+#Модификатор размера сущности значение подбирать в зависимости от параметра raycaststep
+#Параметр нужен для маленьких сущностей при высоких значениях raycaststep
+#Большие значения могут мешать если рядом несколько сущностей
+boxsizemodificator: 0.1
+
+#bossbarcolor
+#Цвет босс бара pink/blue/red/green/yellow/purple/white
+bossbarcolor: white
+
+#bossbarstyle
+#Стиль босс бара progress/notched_6/notched_10/notched_12/notched_20
+bossbarstyle: progress
+
+#bossbarupdate
+#Бос бар будет обновлятся раз в указаное количество тиков
+#Минимальное значение 1
+bossbarupdate: 5
+
+#bossbarhold
+#Парамет отвечает за задержку bossbar
+#Измеряется в тиках умноженых на параметр bossbarupdate
+bossbarhold: 8
+
+#indicatorsteps
+#Шаги индикатора
+indicatorsteps:
+- 0.15d
+- 0d
+- 0.15d
+- 0d
+- 0.15d
+- 0d
+- 0.15d
+- 0d
+- 0.15d
+- 0d
+- 0.15d
+- 0d
+- 0.15d
+- 0d
+- 0.15d
+- 0d
