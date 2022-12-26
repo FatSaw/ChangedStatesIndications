@@ -1,9 +1,6 @@
 package me.bomb.indicators;
 
 import java.io.File;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
@@ -27,7 +24,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
-public class CSI extends JavaPlugin implements Listener {
+public final class CSI extends JavaPlugin implements Listener {
 	private YamlConfiguration config;
 	private HashMap<UUID,Double> health = new HashMap<UUID,Double>();
 	private double range = 0.0;
@@ -35,14 +32,11 @@ public class CSI extends JavaPlugin implements Listener {
 	private double raycaststep = 0.0;
 	private static double boxsizemodificator = 0.0;
 	private HashMap<UUID,LivingEntity> lastentitys = new HashMap<UUID,LivingEntity>();
-	private IndicatorsManager indicatorsmanager;
 	private ArrayList<UUID> canrecivepackets = new ArrayList<UUID>();
 	private boolean langloaded = false;
 	private boolean supported = false;
-	protected static Version version = null;
 	public void onDisable() {
-		indicatorsmanager.disable();
-		indicatorsmanager = null;
+		IndicatorsManager.indicatorsmanager.disable();
 		lastentitys = null;
 		canrecivepackets = null;
 	}
@@ -52,49 +46,16 @@ public class CSI extends JavaPlugin implements Listener {
 	public void onEnable() {
 		switch (Bukkit.getServer().getClass().getPackage().getName().substring(23)) {
 		case "v1_16_R3":
-			indicatorsmanager = new IndicatorsManager_v1_16_R3();
 			supported = true;
-			try {
-				Reader langstream = new InputStreamReader(this.getResource("lang_rgb.yml"), "UTF8");
-				if (langstream != null) {
-					new Lang(YamlConfiguration.loadConfiguration(langstream));
-					langloaded = true;
-				}
-			} catch (UnsupportedEncodingException e) {
-			}
-			version = Version.v1_16_R3;
 			break;
 		case "v1_15_R1":
-			indicatorsmanager = new IndicatorsManager_v1_15_R1();
 			supported = true;
-			try {
-				Reader langstream = new InputStreamReader(this.getResource("lang_old.yml"), "UTF8");
-				if (langstream != null) {
-					new Lang(YamlConfiguration.loadConfiguration(langstream));
-					langloaded = true;
-				}
-			} catch (UnsupportedEncodingException e) {
-			}
-			version = Version.v1_15_R1;
 			break;
 		case "v1_14_R1":
-			indicatorsmanager = new IndicatorsManager_v1_14_R1();
 			supported = true;
-			try {
-				Reader langstream = new InputStreamReader(this.getResource("lang_old.yml"), "UTF8");
-				if (langstream != null) {
-					new Lang(YamlConfiguration.loadConfiguration(langstream));
-					langloaded = true;
-				}
-			} catch (UnsupportedEncodingException e) {
-			}
-			version = Version.v1_14_R1;
 			break;
 		}
 		if(supported) {
-			if (new File(getDataFolder() + File.separator + "lang.yml").exists()) {
-				new Lang(YamlConfiguration.loadConfiguration(new File(getDataFolder() + File.separator + "lang.yml")));
-			}
 			if (!new File(getDataFolder() + File.separator + "config.yml").exists()) {
 				saveResource("config.yml", true);
 			}
@@ -114,7 +75,7 @@ public class CSI extends JavaPlugin implements Listener {
 			new BukkitRunnable() {
 				@Override
 				public void run() {
-					if(indicatorsmanager!=null) {
+					if(IndicatorsManager.indicatorsmanager!=null) {
 						for(Player player : Bukkit.getOnlinePlayers()) {
 							if(canrecivepackets.contains(player.getUniqueId())) {
 								if(!player.isDead()) {
@@ -140,19 +101,19 @@ public class CSI extends JavaPlugin implements Listener {
 							    	if(entity==null) {
 							    		if(lastentitys.containsKey(player.getUniqueId())) {
 							    			LivingEntity lastentity = lastentitys.get(player.getUniqueId());
-								    			if(indicatorsmanager.updateBossBar(player, lastentity, false)) {
+								    			if(IndicatorsManager.indicatorsmanager.updateBossBar(player, lastentity, null)) {
 								    				lastentity = null;
 									    			lastentitys.remove(player.getUniqueId());
 									    		}
 							    		}
 							    	} else {
 							    		if(player.getTargetBlockExact((int) Math.round(distance))==null) {
-							    			indicatorsmanager.updateBossBar(player, entity, true);
+							    			IndicatorsManager.indicatorsmanager.updateBossBar(player, entity, distance);
 							    			lastentitys.put(player.getUniqueId(), entity);
 							    		}
 						    		}
 								} else {
-									indicatorsmanager.updateBossBar(player, null, false);
+									IndicatorsManager.indicatorsmanager.updateBossBar(player, null, null);
 									lastentitys.remove(player.getUniqueId());
 									//dead
 								}
@@ -175,7 +136,7 @@ public class CSI extends JavaPlugin implements Listener {
 									for(Player nearplayer : player.getWorld().getPlayers()) {
 										if(canrecivepackets.contains(nearplayer.getUniqueId())) {
 											if(!nearplayer.getUniqueId().equals(player.getUniqueId()) && player.getLocation().distance(nearplayer.getLocation()) < range) {
-												indicatorsmanager.createIndicator(nearplayer,player,(int)Math.round(ahealth-previoushealth),true);
+												IndicatorsManager.indicatorsmanager.createIndicator(nearplayer,player,ahealth-previoushealth,true);
 											}
 										}
 									}
@@ -185,7 +146,7 @@ public class CSI extends JavaPlugin implements Listener {
 								if(!player.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
 									for(Player nearplayer : player.getWorld().getPlayers()) {
 										if(!nearplayer.getUniqueId().equals(player.getUniqueId()) && player.getLocation().distance(nearplayer.getLocation()) < range) {
-											indicatorsmanager.createIndicator(nearplayer,player,(int)Math.round(previoushealth-ahealth),false);
+											IndicatorsManager.indicatorsmanager.createIndicator(nearplayer,player,previoushealth-ahealth,false);
 										};
 									}
 								}
@@ -217,7 +178,7 @@ public class CSI extends JavaPlugin implements Listener {
 	}
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent event) {
-		indicatorsmanager.logout(event.getPlayer());
+		IndicatorsManager.indicatorsmanager.logout(event.getPlayer());
 		lastentitys.remove(event.getPlayer().getUniqueId());
 		canrecivepackets.remove(event.getPlayer().getUniqueId());
 	}
@@ -241,7 +202,7 @@ public class CSI extends JavaPlugin implements Listener {
 					if(Math.round(amount)>0) {
 						for(Player player : entity.getWorld().getPlayers()) {
 							if(entity.getLocation().distance(player.getLocation()) < range) {
-								indicatorsmanager.createIndicator(player,entity,(int)Math.round(amount),true);
+								IndicatorsManager.indicatorsmanager.createIndicator(player,entity,amount,true);
 							}
 						}
 					}
@@ -260,7 +221,7 @@ public class CSI extends JavaPlugin implements Listener {
 					if(Math.round(amount)>0) {
 						for(Player player : entity.getWorld().getPlayers()) {
 							if(entity.getLocation().distance(player.getLocation()) < range) {
-								indicatorsmanager.createIndicator(player,entity,(int)Math.round(amount),false);
+								IndicatorsManager.indicatorsmanager.createIndicator(player,entity,amount,false);
 							}
 						}
 					}

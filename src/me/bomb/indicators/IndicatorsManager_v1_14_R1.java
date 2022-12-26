@@ -13,8 +13,6 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
-
-import me.bomb.indicators.LangMsg.Type;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.minecraft.server.v1_14_R1.BossBattleCustom;
 import net.minecraft.server.v1_14_R1.EntityArmorStand;
@@ -34,7 +32,7 @@ import net.minecraft.server.v1_14_R1.BossBattle.BarStyle;
 import net.minecraft.server.v1_14_R1.IChatBaseComponent.ChatSerializer;
 import net.minecraft.server.v1_14_R1.PacketPlayOutBoss.Action;
 
-class IndicatorsManager_v1_14_R1 extends IndicatorsManager {
+final class IndicatorsManager_v1_14_R1 extends IndicatorsManager {
 	
 	
 	protected IndicatorsManager_v1_14_R1() {
@@ -127,8 +125,9 @@ class IndicatorsManager_v1_14_R1 extends IndicatorsManager {
     	    }
     	}.runTaskTimerAsynchronously(plugin, 0L, 1L);
 	}
-	public boolean updateBossBar(Player player,Object entity,boolean target) {
+	public boolean updateBossBar(Player player,Object entity,Double distance) {
 		if(battle!=null) {
+			boolean target = distance!=null;
 			if(entity == null) {
 				sendBossRemovePacket(player);
 				battle.remove(player.getUniqueId());
@@ -141,7 +140,7 @@ class IndicatorsManager_v1_14_R1 extends IndicatorsManager {
 				if(battle.containsKey(player.getUniqueId())) {
 					BossBattleCustom bossbattle = (BossBattleCustom) battle.get(player.getUniqueId());
 					if(bossbattle==null) return true;
-					String msg = Lang.getLocalizedText(player, eentity.getName(),(int) Math.round(eentity.getHealth()),(int) Math.round(eentity.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue()), LangMsg.getMessage(eentity.getType(), Type.BOSSBAR));
+					String msg = Lang.getBossbarText(player, eentity, distance);
 					if(hasplaceholdaeapi && eentity.getType().equals(EntityType.PLAYER)) {
 						msg = PlaceholderAPI.setPlaceholders((Player)entity, msg);
 					}
@@ -156,7 +155,7 @@ class IndicatorsManager_v1_14_R1 extends IndicatorsManager {
 					battle.put(player.getUniqueId(), bossbattle);
 					
 				} else if(target) {
-					String msg = Lang.getLocalizedText(player, eentity.getName(),(int) Math.round(eentity.getHealth()),(int) Math.round(eentity.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue()), LangMsg.getMessage(eentity.getType(), Type.BOSSBAR));
+					String msg = Lang.getBossbarText(player, eentity, distance);
 					if(hasplaceholdaeapi && eentity.getType().equals(EntityType.PLAYER)) {
 						msg = PlaceholderAPI.setPlaceholders((Player)entity, msg);
 					}
@@ -172,7 +171,7 @@ class IndicatorsManager_v1_14_R1 extends IndicatorsManager {
 		}
 		return false;
 	}
-	public void createIndicator(Player player,Object entity, int amount,boolean addition) {
+	public void createIndicator(Player player,Object entity, double amount,boolean addition) {
 		LivingEntity eentity = (LivingEntity) entity;
 		Location location = eentity.getLocation();
 		EntityArmorStand stand = new EntityArmorStand(EntityTypes.ARMOR_STAND,((CraftWorld) eentity.getWorld()).getHandle());
@@ -182,19 +181,11 @@ class IndicatorsManager_v1_14_R1 extends IndicatorsManager {
 		stand.setInvulnerable(true);
 		stand.setSilent(true);
 		stand.setLocation(location.getX(), location.getY()+eentity.getHeight()+0.1d, location.getZ(), 0, 0);
-		if(addition) {
-			String indicatormsg = Lang.getLocalizedText(player,eentity.getName(),(int)Math.round(eentity.getHealth()),(int)Math.round(eentity.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue()), LangMsg.getMessage(eentity.getType(),Type.HEAL)).replace("%csientityamount%", Integer.toString(amount));
-			if(eentity.getType().equals(EntityType.PLAYER) && hasplaceholdaeapi) {
-				indicatormsg = PlaceholderAPI.setPlaceholders((Player)entity, indicatormsg);
-			}
-			stand.setCustomName(ChatSerializer.a(indicatormsg));
-		} else {
-			String indicatormsg = Lang.getLocalizedText(player,eentity.getName(),(int)Math.round(eentity.getHealth()),(int)Math.round(eentity.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue()), LangMsg.getMessage(eentity.getType(),Type.DAMAGE)).replace("%csientityamount%", Integer.toString(amount));
-			if(eentity.getType().equals(EntityType.PLAYER) && hasplaceholdaeapi) {
-				indicatormsg = PlaceholderAPI.setPlaceholders((Player)entity, indicatormsg);
-			}
-			stand.setCustomName(ChatSerializer.a(indicatormsg));
+		String indicatormsg = Lang.getIndicatorText(player,eentity,amount,addition);
+		if(eentity.getType().equals(EntityType.PLAYER) && hasplaceholdaeapi) {
+			indicatormsg = PlaceholderAPI.setPlaceholders((Player)entity, indicatormsg);
 		}
+		stand.setCustomName(ChatSerializer.a(indicatormsg));
 		stand.setCustomNameVisible(true);
 		sendIndicatorCreatePacket(player,stand);
 		if(astands.containsKey(player.getUniqueId())) {

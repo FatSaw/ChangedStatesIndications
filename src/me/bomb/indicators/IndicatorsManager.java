@@ -8,6 +8,25 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 public abstract class IndicatorsManager {
+	
+	protected static final IndicatorsManager indicatorsmanager;
+	
+	static {
+		switch (Bukkit.getServer().getClass().getPackage().getName().substring(23)) {
+		case "v1_16_R3":
+			indicatorsmanager = new IndicatorsManager_v1_16_R3();
+			break;
+		case "v1_15_R1":
+			indicatorsmanager = new IndicatorsManager_v1_15_R1();
+			break;
+		case "v1_14_R1":
+			indicatorsmanager = new IndicatorsManager_v1_14_R1();
+			break;
+		default:
+			indicatorsmanager = null;
+		}
+	}
+	
 	protected boolean hasplaceholdaeapi;
 	protected byte bossbarhold;
 	protected ArrayList<Double> indicatorsteps;
@@ -51,8 +70,8 @@ public abstract class IndicatorsManager {
 		battle = null;
 	}
 	
-	public abstract boolean updateBossBar(Player player,Object entity,boolean target);
-	public abstract void createIndicator(Player player,Object entity, int amount,boolean addition);
+	public abstract boolean updateBossBar(Player player,Object entity,Double distance);
+	public abstract void createIndicator(Player player,Object entity, double amount,boolean addition);
 	public abstract void sendBossRemovePacket(Object player);
 	public abstract void sendBossCreatePacket(Object player);
 	public abstract void sendBossUpdateNamePacket(Object player);
